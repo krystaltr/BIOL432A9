@@ -1,0 +1,97 @@
+---
+title: "20286689_TRAN_A9"
+output: html_document
+date: "2025-03-10"
+---
+
+```{r}
+library(vegan)
+library(ape)
+library(ggtree)
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+mydat <- read.csv("FloristicSurvey.csv")
+```
+
+Question 1: 
+```{r}
+speciescols <- 10:ncol(mydat) 
+```
+
+```{r}
+mydat$SpeRichness <- rowSums(mydat[, speciescols] > 0)
+```
+
+```{r}
+ggplot(mydat, aes(x=Location, y=SpeRichness, fill=Location)) +
+  geom_boxplot() +
+  theme_classic() +
+  scale_x_discrete(name="Garlic Mustard Presence") + 
+  scale_y_continuous(name="Species Richness")
+```
+
+Figure 1. Boxplot comparing the distribution of species richness inside (i) vs. outside (o) garlic mustard patches.The x-axis represents the garlic mustard presence, which inside in red and outside in blue. The y-axis represents the species richness, which is the total species count. 
+
+```{r}
+t.test(SpeRichness ~ Location, data = mydat)
+```
+
+The boxplot and t-test showed that species richness outside garlic mustard patches was slightly lower than inside, with the mean value for the 'i' group at 6.53, which is higher than the 'o' group at 5.06. However, the t-test resulted in a p-value greater than 0.05, indicating that the difference was not statistically significant. This suggests that while garlic mustard may be associated with slight variations in species richness, it does not strongly impact the total number of species present in the plant community.
+
+Question 2: 
+```{r}
+mydat$Location <- as.factor(mydat$Location)
+```
+
+```{r}
+mydat$Population <- as.factor(mydat$Population)
+```
+
+```{r}
+species<- mydat[, 10:ncol(mydat)]
+```
+
+```{r}
+braycurtis <- vegdist(species, method="bray")
+```
+
+```{r}
+set.seed(50)
+```
+
+```{r}
+nmds_result <- metaMDS(braycurtis, k=2, trymax=100)
+```
+
+```{r}
+nmds_scores <- as.data.frame(scores(nmds_result))
+```
+
+```{r}
+print(nmds_scores)
+```
+
+```{r}
+nmds_scores$Location <- mydat$Location
+```
+
+```{r}
+nmds_scores$Population <- mydat$Population
+```
+
+```{r}
+ggplot(nmds_scores, aes(x=NMDS1, y=NMDS2, color=Population, shape=Location)) +
+  geom_point(size=3) +
+  theme_classic() +
+  scale_color_manual(values=c("navy", "darkred", "lightblue","darkgray","darkorange"))+
+  scale_x_continuous(name="NMDS Axis 1") + 
+  scale_y_continuous(name="NMDS Axis 2")
+```
+
+Figure 2. The NMDS ordination plot of plant community composition based on Bray-Curtis dissimilarity. Each point represents a sample, with shape indicating garlic mustard presence (circles = inside, triangles = outside) and color representing different sampling populations. 
+
+Based on the NMDS plot and Bray-Curtis dissimilarity, the presence of garlic mustard does not significantly affect plant communities. Instead, community composition is strongly influenced by sampling population
+
